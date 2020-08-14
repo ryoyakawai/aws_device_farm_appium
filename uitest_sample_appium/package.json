@@ -1,0 +1,26 @@
+{
+  "name": "uitest_sample_appium",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf output",
+    "test:android": "node ./bin/pre_update_config.js && ./node_modules/codeceptjs/bin/codecept.js run --steps --config=./codecept.android.conf.js --reporter mochawesome",
+    "test:android:stdo": "node ./bin/pre_update_config.js && ./node_modules/codeceptjs/bin/codecept.js run --steps --config=./codecept.android.conf.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "appium": "^1.18.0",
+    "chromedriver": "^84.0.1",
+    "codeceptjs": "^2.6.8",
+    "fs": "0.0.1-security",
+    "mochawesome": "^6.1.1"
+  },
+  "devDependencies": {
+    "mocha": "^8.1.1",
+    "rimraf": "^3.0.2",
+    "webdriverio": "^6.4.0"
+  }
+}

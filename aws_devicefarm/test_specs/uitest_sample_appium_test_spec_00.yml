@@ -1,0 +1,92 @@
+version: 0.1
+
+# Phases are collection of commands that get executed on Device Farm.
+phases:
+  # The install phase includes commands that install dependencies that your tests use.
+  # Default dependencies for testing frameworks supported on Device Farm are already installed.
+  install:
+    commands:
+      # install node stable versoin
+      - nvm install stable
+
+      # Install npm packages by npm install to both globally and locally
+      - echo ">> Install npm packages by npm install to both globally and locally"
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH
+      - npm install -g typescript
+      - npm install -g appium@$APPIUM_VERSION
+      - npm install -g chromedriver
+      - npm install -g webdriver@6.1.17
+      - npm install -g selenium
+      - npm install -g webdriverio@6.4.0 @wdio/cli@6.4.0
+      - npm install -g mocha
+      - npm install -g mochawesome
+      - npm install -g chai
+      - npm install
+      - tsc --version
+
+  # The pre-test phase includes commands that setup your test environment.
+  # !!! This section has not modified from default/original template. (as of 2020/07) !!!
+  pre_test:
+    commands:
+      # We recommend starting appium server process in the background using the command below.
+      # Appium server log will go to $DEVICEFARM_LOG_DIR directory.
+      # The environment variables below will be auto-populated during run time.
+      - echo ">> Start appium server"
+      - >-
+        appium --log-timestamp
+        --default-capabilities "{\"deviceName\": \"$DEVICEFARM_DEVICE_NAME\", \"platformName\":\"$DEVICEFARM_DEVICE_PLATFORM_NAME\",
+        \"app\":\"$DEVICEFARM_APP_PATH\", \"udid\":\"$DEVICEFARM_DEVICE_UDID\", \"platformVersion\":\"$DEVICEFARM_DEVICE_OS_VERSION\",
+        \"chromedriverExecutable\":\"$DEVICEFARM_CHROMEDRIVER_EXECUTABLE\"}"
+        >> $DEVICEFARM_LOG_DIR/appiumlog.txt 2>&1 &
+      - >-
+        start_appium_timeout=0;
+        while [ true ];
+        do
+            if [ $start_appium_timeout -gt 60 ];
+            then
+                echo "appium server never started in 60 seconds. Exiting";
+                exit 1;
+            fi;
+            grep -i "Appium REST http interface listener started on 0.0.0.0:4723" $DEVICEFARM_LOG_DIR/appiumlog.txt >> /dev/null 2>&1;
+            if [ $? -eq 0 ];
+            then
+                echo "Appium REST http interface listener started on 0.0.0.0:4723";
+                break;
+            else
+                echo "Waiting for appium server to start. Sleeping for 1 second";
+                sleep 1;
+                start_appium_timeout=$((start_appium_timeout+1));
+            fi;
+        done;
+
+  # The test phase includes commands that start your test suite execution.
+  test:
+    commands:
+      # Go into the root folder containing your source code and node_modules
+      - echo ">> Execute test with CodeceptJS"
+      - echo ""
+      - cd $DEVICEFARM_TEST_PACKAGE_PATH
+      - pwd
+      - ls -al
+      - npm run clean
+      - echo "  [CHECK PARAMETERS]"
+      - echo "   >> DEVICEFARM_LOG_DIR=[" $DEVICEFARM_LOG_DIR/results "]"
+      - echo "   >> DEVICEFARM_APP_PATH=[" $DEVICEFARM_APP_PATH "]"
+      - echo "   >> DEVICEFARM_DEVICE_PLATFORM_NAME=[" $DEVICEFARM_DEVICE_PLATFORM_NAME "]"
+      - echo "   >> DEVICEFARM_DEVICE_NAME=[" $DEVICEFARM_DEVICE_NAME "]"
+      - >-
+        node ./bin/pre_update_config.js $DEVICEFARM_LOG_DIR/output $DEVICEFARM_APP_PATH $DEVICEFARM_DEVICE_PLATFORM_NAME $DEVICEFARM_DEVICE_NAME &&
+        ./node_modules/codeceptjs/bin/codecept.js run --debug --plugins retryFailedStep --steps --config=./codecept.android.conf.js --reporter mochawesome
+      - >-
+
+  # The post test phase includes are commands that are run after your tests are executed.
+  post_test:
+    commands:
+
+# The artifacts phase lets you specify the location where your tests logs, device logs will be stored.
+# And also let you specify the location of your test logs and artifacts which you want to be collected by Device Farm.
+# These logs and artifacts will be available through ListArtifacts API in Device Farm.
+artifacts:
+  # By default, Device Farm will collect your artifacts from following directories
+  - $DEVICEFARM_LOG_DIR
+

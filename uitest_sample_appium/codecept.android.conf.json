@@ -1,0 +1,45 @@
+{
+  "tests": "./test_cases/*_test.js",
+  "output": "./output",
+  "helpers": {
+    "Appium": {
+      "smartWait": 10000,
+      "app_relative": "./lib/uitest_sample_android.apk",
+      "app": "",
+      "desiredCapabilities": {
+        "platformName": "Android",
+        "appWaitForLaunch": true,
+        "deviceName": "device",
+        "udid": "emulator-5554",
+        "automationName": "UiAutomator2",
+        "newCommandTimeout": 120,
+        "appWaitDuration": 60000,
+        "platformVersion": "10"
+      }
+    },
+    "Mochawesome": {
+      "uniqueScreenshotNames": true
+    }
+  },
+  "include": {
+    "I": "./steps_file.js"
+  },
+  "bootstrap": null,
+  "mocha": {
+    "reporterOptions": {
+      "reportDir": "./output"
+    }
+  },
+  "name": "uitest_sample_appium",
+  "plugins": {
+    "retryFailedStep": {
+      "enabled": true
+    },
+    "screenshotOnFail": {
+      "enabled": true
+    },
+    "autoDelay": {
+      "enabled": true
+    }
+  }
+}
